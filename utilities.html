@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="beenpluggedin — Engineered audio hardware and interactive utilities built for budget creators. Acoustic precision at student prices.">
+    <title>beenpluggedin -- Free Audio Utilities</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           DESIGN TOKENS
+           ================================================================ */
+        :root {
+            --canvas: #08080a;
+            --container: #0e0f12;
+            --container-raised: #131419;
+            --container-hover: #18191f;
+            --surface: #1a1b21;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.16);
+            --border-active: rgba(255, 255, 255, 0.24);
+            --text-primary: #f4f4f6;
+            --text-secondary: #8e8e96;
+            --text-tertiary: #5a5a62;
+            --accent: #ff4500;
+            --accent-dim: rgba(255, 69, 0, 0.12);
+            --accent-hover: #ff5a1a;
+            --accent-glow: rgba(255, 69, 0, 0.06);
+            --success: #22c55e;
+            --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius: 2px;
+            --transition-fast: 100ms ease;
+            --transition-med: 200ms ease;
+            --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ================================================================
+           RESET & BASE
+           ================================================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--sans);
+            background-color: var(--canvas);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: var(--canvas);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+        }
+
+        input, select {
+            font-family: inherit;
+            color: inherit;
+            background: none;
+            border: none;
+            outline: none;
+        }
+
+        img, svg {
+            display: block;
+            max-width: 100%;
+        }
+
+        /* ================================================================
+           SCROLLBAR
+           ================================================================ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--canvas); }
+        ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+        /* ================================================================
+           LAYOUT
+           ================================================================ */
+        .container {
+            width: 100%;
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 0 clamp(20px, 4vw, 48px);
+        }
+
+        /* ================================================================
+           ANNOUNCEMENT BAR
+           ================================================================ */
+        #announcement-bar {
+            background: var(--accent);
+            color: var(--canvas);
+            overflow: hidden;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .announce-track {
+            display: flex;
+            animation: marquee 30s linear infinite;
+            white-space: nowrap;
+        }
+
+        .announce-track span {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            padding: 0 48px;
+        }
+
+        .announce-separator {
+            width: 4px;
+            height: 4px;
+            background: var(--canvas);
+            border-radius: 50%;
+            flex-shrink: 0;
+            align-self: center;
+            opacity: 0.5;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ================================================================
+           HEADER
+           ================================================================ */
+        #site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(8, 8, 10, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            gap: 24px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+        }
+
+        .brand-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--accent);
+        }
+
+        .version-tag {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.05em;
+            padding: 3px 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            white-space: nowrap;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 0.06em;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse-dot 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .currency-toggle {
+            font-family: var(--mono);
+            font-size: 11px;
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .currency-btn {
+            padding: 4px 10px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            transition: all var(--transition-fast);
+        }
+
+        .currency-btn.active {
+            background: var(--text-primary);
+            color: var(--canvas);
+        }
+
+        .currency-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .nav-link {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            transition: color var(--transition-fast);
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-link--active {
+            color: var(--text-primary);
+        }
+
+        .nav-link--active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 16px;
+            right: 16px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .nav-link--bag {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-left: 8px;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-link--bag:hover {
+            border-color: var(--border-hover);
+        }
+
+        .nav-link--bag.has-items {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .mobile-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .mobile-toggle span {
+            display: block;
+            width: 16px;
+            height: 1px;
+            background: var(--text-primary);
+            transition: all var(--transition-med);
+        }
+
+        .mobile-toggle.open span:nth-child(1) {
+            transform: translateY(3px) rotate(45deg);
+        }
+        .mobile-toggle.open span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.open span:nth-child(3) {
+            transform: translateY(-3px) rotate(-45deg);
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 97px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--canvas);
+            z-index: 999;
+            padding: 32px;
+            flex-direction: column;
+            gap: 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .mobile-nav.open {
+            display: flex;
+        }
+
+        .mobile-nav a {
+            font-family: var(--mono);
+            font-size: 14px;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            transition: color var(--transition-fast);
+        }
+
+        .mobile-nav a:hover {
+            color: var(--text-primary);
+        }
+
+        /* ================================================================
+           FOOTER
+           ================================================================ */
+        #site-footer {
+            padding: 40px 0;
+            background: var(--canvas);
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .footer-brand {
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .footer-copy {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.02em;
+        }
+
+        .footer-disclaimer {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.02em;
+            opacity: 0.6;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-link {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            transition: color var(--transition-fast);
+        }
+
+        .footer-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* ================================================================
+           SCROLL ANIMATIONS
+           ================================================================ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+        @media (max-width: 1024px) {
+            .footer-inner {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-center,
+            .header-nav {
+                display: none;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+        }
+
+        /* ================================================================
+           UTILITIES PAGE SPECIFIC STYLES
+           ================================================================ */
+        #utilities-hero {
+            padding: clamp(64px, 8vw, 96px) 0 48px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .utilities-heading {
+            font-family: var(--sans);
+            font-size: clamp(36px, 5vw, 64px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+        }
+
+        .utilities-sub {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .utilities-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 32px;
+            padding: 64px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        @media (max-width: 1024px) {
+            .utilities-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .widget-panel {
+            background: var(--canvas);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .widget-header {
+            background: var(--container);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
+        }
+
+        .widget-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .widget-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border-hover);
+        }
+
+        /* Terminal Widget */
+        .terminal-body {
+            padding: 24px;
+            font-family: var(--mono);
+            background: #050505;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+        }
+
+        .term-step { display: none; flex-direction: column; gap: 24px; }
+        .term-step.active { display: flex; }
+
+        .term-label {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+        .term-label::before { content: '>'; color: var(--success); margin-right: 8px; }
+
+        .term-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .term-btn {
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 12px;
+            font-family: var(--mono);
+            font-size: 12px;
+            text-align: left;
+            transition: all var(--transition-fast);
+        }
+        .term-btn:hover { background: rgba(34, 197, 94, 0.1); }
+
+        .term-output {
+            color: var(--success);
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            flex: 1;
+        }
+
+        .term-reset {
+            margin-top: 24px;
+            align-self: flex-start;
+            color: var(--text-tertiary);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            font-family: var(--mono);
+            font-size: 11px;
+        }
+        .term-reset:hover { border-color: var(--text-primary); color: var(--text-primary); }
+
+        /* Calculator Widget */
+        .calc-body {
+            padding: 24px;
+            background: var(--canvas);
+            flex: 1;
+        }
+
+        .calc-group { margin-bottom: 24px; }
+        .calc-group label {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+        }
+        .calc-val-display { color: var(--text-primary); }
+
+        .calc-slider {
+            width: 100%;
+            appearance: none;
+            -webkit-appearance: none;
+            height: 2px;
+            background: var(--border);
+            outline: none;
+        }
+        .calc-slider::-webkit-slider-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .calc-select {
+            width: 100%;
+            background: var(--container);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-family: var(--sans);
+            font-size: 14px;
+            padding: 12px;
+            border-radius: var(--radius);
+        }
+        .calc-select option { background: var(--container); }
+
+        .calc-results {
+            background: var(--container);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-top: 32px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono);
+        }
+        .result-row:last-child { border-bottom: none; }
+
+        .result-label { font-size: 11px; color: var(--text-secondary); }
+        .result-val { font-size: 14px; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .result-val.highlight { font-size: 24px; color: var(--accent); font-weight: 700; }
+
+        .rating-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: var(--radius);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            background: var(--border);
+        }
+        .rating-badge.ideal { color: var(--success); border: 1px solid var(--success); }
+        .rating-badge.dry { color: var(--text-tertiary); border: 1px solid var(--border); }
+        .rating-badge.reverberant { color: #facc15; border: 1px solid #facc15; }
+        .rating-badge.problematic { color: var(--accent); border: 1px solid var(--accent); }
+
+        .recommendation {
+            margin-top: 24px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            background: var(--accent-dim);
+            color: var(--text-primary);
+            font-size: 13px;
+            border-radius: var(--radius);
+        }
+        .recommendation strong { color: var(--accent); font-family: var(--mono); }
+
+        .free-note {
+            text-align: center;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            padding: 32px 0;
+            letter-spacing: 0.05em;
+        }
+    
+        /* PRODUCT IMAGE HOVER EFFECT */
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+        }
+        
+        .product-visual:hover .product-img,
+        .hero-product-frame:hover .product-img,
+        .strip-card-visual:hover .product-img,
+        .cart-item-thumb:hover .product-img,
+        .detail-hero-visual:hover .product-img,
+        .lab-visual:hover .product-img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+    </style>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+<body>
+
+    <!-- ============================================================
+         ANNOUNCEMENT BAR
+         ============================================================ -->
+    <div id="announcement-bar">
+        <div class="announce-track">
+            <span>FREE SHIPPING ON ORDERS ABOVE 2,999</span>
+            <div class="announce-separator"></div>
+            <span>BATCH 02 NOW SHIPPING</span>
+            <div class="announce-separator"></div>
+            <span>ALL PRODUCTS DESIGNED FOR REPAIRABILITY</span>
+            <div class="announce-separator"></div>
+            <span>STUDENT DISCOUNT: USE CODE CAMPUS15</span>
+            <div class="announce-separator"></div>
+            <span>FREE SHIPPING ON ORDERS ABOVE 2,999</span>
+            <div class="announce-separator"></div>
+            <span>BATCH 02 NOW SHIPPING</span>
+            <div class="announce-separator"></div>
+            <span>ALL PRODUCTS DESIGNED FOR REPAIRABILITY</span>
+            <div class="announce-separator"></div>
+            <span>STUDENT DISCOUNT: USE CODE CAMPUS15</span>
+            <div class="announce-separator"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header id="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <div class="header-left">
+                    <a href="index.html" class="brand-mark">
+                        <svg class="brand-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M11 1L4 11h5l-1 8 7-10h-5l1-8z"/>
+                        </svg>
+                        beenpluggedin
+                    </a>
+                    <span class="version-tag">v2.0-STABLE</span>
+                </div>
+
+                <div class="header-center">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        LAB ONLINE
+                    </div>
+                    <div class="currency-toggle">
+                        <button class="currency-btn active" data-currency="INR">INR</button>
+                        <button class="currency-btn" data-currency="USD">USD</button>
+                    </div>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="catalog.html" class="nav-link">CATALOG</a>
+                    <a href="utilities.html" class="nav-link nav-link--active">UTILITIES</a>
+                    <a href="specs.html" class="nav-link">SPECS</a>
+                    <a href="lab.html" class="nav-link">LAB</a>
+                    <a href="bag.html" class="nav-link nav-link--bag" id="bag-link">BAG (<span id="bag-count">0</span>)</a>
+                </nav>
+
+                <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav -->
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="catalog.html">CATALOG</a>
+        <a href="utilities.html">UTILITIES</a>
+        <a href="specs.html">SPECS</a>
+        <a href="lab.html">LAB</a>
+        <a href="bag.html">BAG (0)</a>
+    </div>
+
+    <!-- ============================================================
+         MAIN CONTENT
+         ============================================================ -->
+    <main>
+        <section id="utilities-hero" class="reveal">
+            <div class="container">
+                <h1 class="utilities-heading">Free Audio Utilities</h1>
+                <p class="utilities-sub">Professional-grade diagnostic and calculation tools. No signup, no tracking, no cost.</p>
+            </div>
+        </section>
+
+        <section class="reveal">
+            <div class="container">
+                <div class="utilities-grid">
+                    
+                    <!-- WIDGET A: Audio Doctor Terminal -->
+                    <div class="widget-panel">
+                        <div class="widget-header">
+                            <div class="widget-dots">
+                                <div class="widget-dot"></div>
+                                <div class="widget-dot"></div>
+                                <div class="widget-dot"></div>
+                            </div>
+                            AUDIO DOCTOR DIAGNOSTIC TERMINAL
+                        </div>
+                        <div class="terminal-body" id="term-container">
+                            <!-- Step 1 -->
+                            <div class="term-step active" id="term-step-1">
+                                <div class="term-label">SELECT PRIMARY ISSUE</div>
+                                <div class="term-options">
+                                    <button class="term-btn" onclick="termSelect('issue', 'STATIC')">STATIC</button>
+                                    <button class="term-btn" onclick="termSelect('issue', 'LATENCY')">LATENCY</button>
+                                    <button class="term-btn" onclick="termSelect('issue', 'ECHO')">ECHO</button>
+                                    <button class="term-btn" onclick="termSelect('issue', 'LOW GAIN')">LOW GAIN</button>
+                                </div>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="term-step" id="term-step-2">
+                                <div class="term-label">SELECT OPERATING SYSTEM</div>
+                                <div class="term-options">
+                                    <button class="term-btn" onclick="termSelect('os', 'WINDOWS')">WINDOWS</button>
+                                    <button class="term-btn" onclick="termSelect('os', 'MACOS')">MACOS</button>
+                                    <button class="term-btn" onclick="termSelect('os', 'LINUX')">LINUX</button>
+                                </div>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="term-step" id="term-step-3">
+                                <div class="term-label">SELECT AUDIO INTERFACE</div>
+                                <div class="term-options">
+                                    <button class="term-btn" onclick="termSelect('iface', 'USB')">USB</button>
+                                    <button class="term-btn" onclick="termSelect('iface', 'BLUETOOTH')">BLUETOOTH</button>
+                                    <button class="term-btn" onclick="termSelect('iface', '3.5MM JACK')">3.5MM JACK</button>
+                                    <button class="term-btn" onclick="termSelect('iface', 'XLR')">XLR</button>
+                                </div>
+                            </div>
+                            <!-- Output -->
+                            <div class="term-step" id="term-step-4">
+                                <div class="term-output" id="term-output-text"></div>
+                                <button class="term-reset" onclick="termReset()">REBOOT DIAGNOSTIC</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- WIDGET B: RT60 Acoustics Calculator -->
+                    <div class="widget-panel">
+                        <div class="widget-header">
+                            <div class="widget-dots">
+                                <div class="widget-dot"></div>
+                                <div class="widget-dot"></div>
+                                <div class="widget-dot"></div>
+                            </div>
+                            RT60 ACOUSTICS CALCULATOR
+                        </div>
+                        <div class="calc-body">
+                            <div class="calc-group">
+                                <label>
+                                    <span>ROOM LENGTH (m)</span>
+                                    <span class="calc-val-display" id="val-l">5.0</span>
+                                </label>
+                                <input type="range" class="calc-slider" id="calc-l" min="2" max="15" step="0.1" value="5">
+                            </div>
+                            <div class="calc-group">
+                                <label>
+                                    <span>ROOM WIDTH (m)</span>
+                                    <span class="calc-val-display" id="val-w">4.0</span>
+                                </label>
+                                <input type="range" class="calc-slider" id="calc-w" min="2" max="10" step="0.1" value="4">
+                            </div>
+                            <div class="calc-group">
+                                <label>
+                                    <span>ROOM HEIGHT (m)</span>
+                                    <span class="calc-val-display" id="val-h">2.8</span>
+                                </label>
+                                <input type="range" class="calc-slider" id="calc-h" min="2" max="5" step="0.1" value="2.8">
+                            </div>
+                            <div class="calc-group">
+                                <label><span>SURFACE MATERIAL PRESET</span></label>
+                                <select class="calc-select" id="calc-mat">
+                                    <option value="0.05">Concrete / Bare Space</option>
+                                    <option value="0.15" selected>Mixed / Office</option>
+                                    <option value="0.25">Carpet / Soft Furnishings</option>
+                                    <option value="0.45">Studio / Acoustically Treated</option>
+                                </select>
+                            </div>
+
+                            <div class="calc-results">
+                                <div class="result-row">
+                                    <span class="result-label">ROOM VOLUME</span>
+                                    <span class="result-val"><span id="res-vol">56.0</span> m&sup3;</span>
+                                </div>
+                                <div class="result-row">
+                                    <span class="result-label">TOTAL ABSORPTION</span>
+                                    <span class="result-val"><span id="res-abs">13.6</span> Sabins</span>
+                                </div>
+                                <div class="result-row" style="margin-top: 16px; border:none;">
+                                    <span class="result-label">RT60 ESTIMATE</span>
+                                    <span class="result-val highlight">
+                                        <span id="res-rt60">0.66</span>s
+                                        <span class="rating-badge" id="res-badge">REVERBERANT</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="recommendation" id="res-rec">
+                                To achieve an ideal RT60 of ~0.4s, you need <strong>4 packs</strong> of ECHO-01 panels.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="free-note">
+                    These tools are provided free of charge for all creators. No signup required.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <footer id="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-left">
+                    <div class="footer-brand">beenpluggedin</div>
+                    <div class="footer-copy">2024 beenpluggedin. All rights reserved.</div>
+                    <div class="footer-disclaimer">University assignment project -- MKT906 CA-1</div>
+                </div>
+                <div class="footer-links">
+                    <a href="catalog.html" class="footer-link">CATALOG</a>
+                    <a href="utilities.html" class="footer-link">UTILITIES</a>
+                    <a href="specs.html" class="footer-link">SPECS</a>
+                    <a href="lab.html" class="footer-link">LAB</a>
+                    <a href="#" class="footer-link">RSS</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================================
+         JAVASCRIPT
+         ============================================================ -->
+    <script>
+        /* ================================================================
+           CURRENCY TOGGLE
+           ================================================================ */
+        const EXCHANGE_RATE = 84.5;
+        let currentCurrency = localStorage.getItem('bpi-currency') || 'INR';
+
+        function initCurrency() {
+            document.querySelectorAll('.currency-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.currency === currentCurrency);
+                btn.addEventListener('click', () => {
+                    currentCurrency = btn.dataset.currency;
+                    localStorage.setItem('bpi-currency', currentCurrency);
+                    updateCurrencyUI();
+                });
+            });
+            updateCurrencyUI();
+        }
+
+        function updateCurrencyUI() {
+            document.querySelectorAll('.currency-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.currency === currentCurrency);
+            });
+
+            document.querySelectorAll('.price-currency-symbol').forEach(el => {
+                el.textContent = currentCurrency === 'INR' ? '\u20B9' : '$';
+            });
+
+            document.querySelectorAll('.price-value').forEach(el => {
+                const val = currentCurrency === 'INR' ? el.dataset.inr : el.dataset.usd;
+                if (val) el.textContent = val;
+            });
+        }
+
+        /* ================================================================
+           BAG COUNTER
+           ================================================================ */
+        
+        /* BAG LOGIC */
+        let cart = [];
+        try { cart = JSON.parse(localStorage.getItem('bpi-cart')) || []; } catch(e) { cart = []; }
+
+        function getCartCount() { return cart.reduce((sum, item) => sum + item.qty, 0); }
+
+        function updateBagUI() {
+            const count = getCartCount();
+            const el = document.getElementById('bag-count');
+            if (el) el.textContent = count;
+            const mobileEl = document.getElementById('bag-count-mobile') || document.querySelector('.mobile-bag-count');
+            if (mobileEl) mobileEl.textContent = count;
+            const link = document.getElementById('bag-link');
+            if (link) link.classList.toggle('has-items', count > 0);
+            const itemCount = document.getElementById('bag-item-count');
+            if (itemCount) itemCount.textContent = count;
+            if (typeof renderCartItems === 'function') renderCartItems();
+        }
+
+        function saveCart() {
+            localStorage.setItem('bpi-cart', JSON.stringify(cart));
+            localStorage.setItem('bpi-bag', getCartCount());
+            updateBagUI();
+            updateCurrencyUI();
+        }
+
+        window.addToBagDetailed = function(product) {
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) { existing.qty += 1; } else { cart.push({...product, qty: 1}); }
+            saveCart();
+            const link = document.getElementById('bag-link');
+            if (link) {
+                link.style.background = 'var(--accent)';
+                link.style.color = 'var(--canvas)';
+                setTimeout(() => { link.style.background = ''; link.style.color = ''; }, 300);
+            }
+        };
+
+        document.querySelectorAll('.add-to-bag-btn, .btn-primary').forEach(btn => {
+            if (btn.textContent.trim() === 'ADD TO BAG' || btn.classList.contains('add-to-bag-btn')) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const card = btn.closest('.strip-card') || btn.closest('.featured-info') || btn.closest('.product-card') || btn.closest('.lab-card') || btn.closest('.detail-hero-content');
+                    let product = { id: 'BPI-UNKNOWN', name: 'Hardware Product', price_inr: 0, price_usd: 0 };
+                    
+                    if (card) {
+                        const skuEl = card.querySelector('.strip-card-sku') || card.querySelector('.product-sku') || card.querySelector('.hero-tag');
+                        if (skuEl) product.id = skuEl.textContent.trim();
+                        if (!skuEl && btn.closest('.featured-info')) product.id = 'BPI-PL01';
+                        
+                        const nameEl = card.querySelector('.strip-card-name') || card.querySelector('.featured-product-name') || card.querySelector('.product-title') || card.querySelector('.hero-headline');
+                        if (nameEl) product.name = nameEl.textContent.trim().replace(' Wireless Headphones', '');
+                        
+                        const priceVal = card.querySelector('.price-value');
+                        if (priceVal) {
+                            product.price_inr = parseInt(priceVal.dataset.inr.replace(/,/g, ''), 10);
+                            product.price_usd = parseInt(priceVal.dataset.usd, 10);
+                        }
+                    }
+                    
+                    addToBagDetailed(product);
+                    const originalText = btn.textContent;
+                    btn.textContent = 'ADDED';
+                    setTimeout(() => { btn.textContent = originalText; }, 1200);
+                });
+            }
+        });
+
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+
+        if (mobileToggle && mobileNav) {
+            mobileToggle.addEventListener('click', () => {
+                mobileToggle.classList.toggle('open');
+                mobileNav.classList.toggle('open');
+                document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
+            });
+        }
+
+        /* ================================================================
+           SCROLL REVEAL
+           ================================================================ */
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        /* ================================================================
+           UTILITIES SPECIFIC JS
+           ================================================================ */
+        
+        // Terminal Widget
+        let termState = { issue: '', os: '', iface: '' };
+        
+        function termSelect(field, val) {
+            termState[field] = val;
+            if (field === 'issue') {
+                document.getElementById('term-step-1').classList.remove('active');
+                document.getElementById('term-step-2').classList.add('active');
+            } else if (field === 'os') {
+                document.getElementById('term-step-2').classList.remove('active');
+                document.getElementById('term-step-3').classList.add('active');
+            } else if (field === 'iface') {
+                document.getElementById('term-step-3').classList.remove('active');
+                document.getElementById('term-step-4').classList.add('active');
+                runDiagnostic();
+            }
+        }
+        
+        function termReset() {
+            termState = { issue: '', os: '', iface: '' };
+            document.getElementById('term-step-4').classList.remove('active');
+            document.getElementById('term-step-1').classList.add('active');
+            document.getElementById('term-output-text').textContent = '';
+        }
+
+        function runDiagnostic() {
+            const { issue, os, iface } = termState;
+            let out = `> INITIALIZING DIAGNOSTIC PROTOCOL...\n`;
+            out += `> ANALYZING: ${issue} on ${os} via ${iface}\n\n`;
+            
+            if (issue === 'STATIC') {
+                if (iface === 'USB') out += `[1] Isolate power delivery. Disable USB Selective Suspend in ${os} power settings.\n[2] Check for ground loops. Ensure DAC and PC share the same mains socket.\n[3] Try a powered USB hub to provide clean 5V DC.\n`;
+                else if (iface === '3.5MM JACK') out += `[1] Motherboard audio isolation failure detected. The ${os} system is likely passing EMI to the analog output.\n[2] Recommend external DAC/Amp (e.g. CADENCE-01).\n[3] Use rear I/O port instead of front-panel header.\n`;
+                else out += `[1] Check for cable shielding degradation.\n[2] Ensure secure connection. Clean contacts.\n`;
+            } else if (issue === 'LATENCY') {
+                if (os === 'WINDOWS') out += `[1] Install ASIO4ALL or native ASIO drivers for your interface.\n[2] Set buffer size to 128 or 256 samples in DAW/Audio settings.\n[3] Disable 'Audio Enhancements' in Sound Control Panel.\n`;
+                else if (os === 'MACOS') out += `[1] CoreAudio typically has low latency out of the box. Check Audio MIDI Setup.\n[2] Verify sample rate matches across aggregate devices (e.g. 48kHz).\n`;
+                else out += `[1] Configure JACK or PipeWire for low-latency operation.\n[2] Ensure user is in 'audio' group for real-time priority.\n`;
+                
+                if (iface === 'BLUETOOTH') out += `\n[!] WARNING: Bluetooth introduces inherent latency (150ms+). Switch to wired connection for real-time monitoring.\n`;
+            } else if (issue === 'ECHO') {
+                out += `[1] Acoustic feedback loop detected.\n[2] Disable 'Listen to this device' in ${os} mic properties.\n[3] Use closed-back headphones (e.g. PLUG-01) instead of speakers.\n[4] Treat room with acoustic panels to reduce RT60.\n`;
+            } else if (issue === 'LOW GAIN') {
+                if (iface === 'XLR') out += `[1] Dynamic mics require high gain. Ensure audio interface can provide +50dB to +60dB of clean gain.\n[2] Consider an inline preamp (Cloudlifter/FetHead) if using standard interface.\n[3] Check if +48V Phantom Power is required/enabled for condenser mics.\n`;
+                else if (iface === 'USB') out += `[1] Check digital gain slider in ${os} sound settings.\n[2] Ensure no background noise suppression software is artificially ducking the signal.\n`;
+                else out += `[1] Impedance mismatch likely. High impedance headphones require external amplification.\n[2] Check output power rating of ${os} device vs headphone sensitivity.\n`;
+            }
+            out += `\n> DIAGNOSTIC COMPLETE.`;
+            
+            let i = 0;
+            const el = document.getElementById('term-output-text');
+            el.textContent = '';
+            
+            // Typewriter effect
+            function typeWriter() {
+                if (i < out.length) {
+                    el.textContent += out.charAt(i);
+                    i++;
+                    setTimeout(typeWriter, 10);
+                }
+            }
+            typeWriter();
+        }
+
+        // Calculator Widget
+        const calcL = document.getElementById('calc-l');
+        const calcW = document.getElementById('calc-w');
+        const calcH = document.getElementById('calc-h');
+        const calcMat = document.getElementById('calc-mat');
+        
+        function updateCalc() {
+            const l = parseFloat(calcL.value);
+            const w = parseFloat(calcW.value);
+            const h = parseFloat(calcH.value);
+            const coef = parseFloat(calcMat.value);
+            
+            document.getElementById('val-l').textContent = l.toFixed(1);
+            document.getElementById('val-w').textContent = w.toFixed(1);
+            document.getElementById('val-h').textContent = h.toFixed(1);
+            
+            const v = l * w * h;
+            const s = (l * w * 2) + (l * h * 2) + (w * h * 2);
+            const a = s * coef;
+            const rt60 = (0.161 * v) / a;
+            
+            document.getElementById('res-vol').textContent = v.toFixed(1);
+            document.getElementById('res-abs').textContent = a.toFixed(1);
+            document.getElementById('res-rt60').textContent = rt60.toFixed(2);
+            
+            const badge = document.getElementById('res-badge');
+            badge.className = 'rating-badge';
+            
+            if (rt60 < 0.3) {
+                badge.textContent = 'DRY';
+                badge.classList.add('dry');
+            } else if (rt60 >= 0.3 && rt60 <= 0.6) {
+                badge.textContent = 'IDEAL';
+                badge.classList.add('ideal');
+            } else if (rt60 > 0.6 && rt60 <= 1.0) {
+                badge.textContent = 'REVERBERANT';
+                badge.classList.add('reverberant');
+            } else {
+                badge.textContent = 'PROBLEMATIC';
+                badge.classList.add('problematic');
+            }
+            
+            const targetA = (0.161 * v) / 0.4; // Target RT60 = 0.4s
+            let panelsNeeded = 0;
+            if (a < targetA) {
+                const aNeeded = targetA - a;
+                // Each panel = 0.34m2, NRC 0.85 -> ~0.289 Sabins
+                const panels = Math.ceil(aNeeded / 0.289);
+                // 6 panels per pack
+                const packs = Math.ceil(panels / 6);
+                panelsNeeded = packs;
+            }
+            
+            const recEl = document.getElementById('res-rec');
+            if (rt60 <= 0.4) {
+                recEl.innerHTML = `Your room acoustics are already in a great state.`;
+            } else {
+                recEl.innerHTML = `To achieve an ideal RT60 of ~0.4s, you need <strong>${panelsNeeded} pack${panelsNeeded > 1 ? 's' : ''}</strong> of ECHO-01 panels.`;
+            }
+        }
+        
+        calcL.addEventListener('input', updateCalc);
+        calcW.addEventListener('input', updateCalc);
+        calcH.addEventListener('input', updateCalc);
+        calcMat.addEventListener('change', updateCalc);
+        
+        // Initial setup
+        initCurrency();
+        updateBagUI();
+        updateCalc();
+    </script>
+</body>
+</html>

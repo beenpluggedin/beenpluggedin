@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="beenpluggedin — Engineered audio hardware and interactive utilities built for budget creators. Acoustic precision at student prices.">
+    <title>Focus Audio Lab -- beenpluggedin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           DESIGN TOKENS
+           ================================================================ */
+        :root {
+            --canvas: #08080a;
+            --container: #0e0f12;
+            --container-raised: #131419;
+            --container-hover: #18191f;
+            --surface: #1a1b21;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.16);
+            --border-active: rgba(255, 255, 255, 0.24);
+            --text-primary: #f4f4f6;
+            --text-secondary: #8e8e96;
+            --text-tertiary: #5a5a62;
+            --accent: #ff4500;
+            --accent-dim: rgba(255, 69, 0, 0.12);
+            --accent-hover: #ff5a1a;
+            --accent-glow: rgba(255, 69, 0, 0.06);
+            --success: #22c55e;
+            --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius: 2px;
+            --transition-fast: 100ms ease;
+            --transition-med: 200ms ease;
+            --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ================================================================
+           RESET & BASE
+           ================================================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--sans);
+            background-color: var(--canvas);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: var(--accent);
+            color: var(--canvas);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+        }
+
+        input, select {
+            font-family: inherit;
+            color: inherit;
+            background: none;
+            border: none;
+            outline: none;
+        }
+
+        img, svg {
+            display: block;
+            max-width: 100%;
+        }
+
+        /* ================================================================
+           SCROLLBAR
+           ================================================================ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--canvas); }
+        ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+        /* ================================================================
+           LAYOUT
+           ================================================================ */
+        .container {
+            width: 100%;
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 0 clamp(20px, 4vw, 48px);
+        }
+
+        /* ================================================================
+           ANNOUNCEMENT BAR
+           ================================================================ */
+        #announcement-bar {
+            background: var(--accent);
+            color: var(--canvas);
+            overflow: hidden;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .announce-track {
+            display: flex;
+            animation: marquee 30s linear infinite;
+            white-space: nowrap;
+        }
+
+        .announce-track span {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            padding: 0 48px;
+        }
+
+        .announce-separator {
+            width: 4px;
+            height: 4px;
+            background: var(--canvas);
+            border-radius: 50%;
+            flex-shrink: 0;
+            align-self: center;
+            opacity: 0.5;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ================================================================
+           HEADER
+           ================================================================ */
+        #site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(8, 8, 10, 0.94);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            gap: 24px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+
+        .brand-mark {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+        }
+
+        .brand-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--accent);
+        }
+
+        .version-tag {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.05em;
+            padding: 3px 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            white-space: nowrap;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 0.06em;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse-dot 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .currency-toggle {
+            font-family: var(--mono);
+            font-size: 11px;
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .currency-btn {
+            padding: 4px 10px;
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+            transition: all var(--transition-fast);
+        }
+
+        .currency-btn.active {
+            background: var(--text-primary);
+            color: var(--canvas);
+        }
+
+        .currency-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        .nav-link {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            transition: color var(--transition-fast);
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-link--active {
+            color: var(--text-primary);
+        }
+
+        .nav-link--active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 16px;
+            right: 16px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        .nav-link--bag {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-left: 8px;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-link--bag:hover {
+            border-color: var(--border-hover);
+        }
+
+        .nav-link--bag.has-items {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .mobile-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .mobile-toggle span {
+            display: block;
+            width: 16px;
+            height: 1px;
+            background: var(--text-primary);
+            transition: all var(--transition-med);
+        }
+
+        .mobile-toggle.open span:nth-child(1) {
+            transform: translateY(3px) rotate(45deg);
+        }
+        .mobile-toggle.open span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.open span:nth-child(3) {
+            transform: translateY(-3px) rotate(-45deg);
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 97px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--canvas);
+            z-index: 999;
+            padding: 32px;
+            flex-direction: column;
+            gap: 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .mobile-nav.open {
+            display: flex;
+        }
+
+        .mobile-nav a {
+            font-family: var(--mono);
+            font-size: 14px;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            transition: color var(--transition-fast);
+        }
+
+        .mobile-nav a:hover {
+            color: var(--text-primary);
+        }
+
+        /* ================================================================
+           LAB SPECIFIC STYLES
+           ================================================================ */
+        .lab-hero {
+            padding: clamp(64px, 10vw, 96px) 0 48px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .lab-title {
+            font-family: var(--sans);
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 16px;
+        }
+
+        .lab-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .generator-interface {
+            padding: clamp(48px, 8vw, 80px) 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .generator-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--container);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+        }
+
+        .noise-toggles {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .noise-btn {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            padding: 24px;
+            border-right: 1px solid var(--border);
+            transition: all var(--transition-med);
+            background: var(--canvas);
+        }
+
+        .noise-btn:last-child {
+            border-right: none;
+        }
+
+        .noise-btn:hover {
+            background: var(--container-hover);
+            color: var(--text-primary);
+        }
+
+        .noise-btn.active {
+            background: var(--container);
+            color: var(--accent);
+            box-shadow: inset 0 2px 0 var(--accent);
+        }
+
+        .visualizer-container {
+            width: 100%;
+            height: 240px;
+            background: var(--container);
+            position: relative;
+            border-bottom: 1px solid var(--border);
+        }
+
+        #visualizer {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .controls-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .control-group {
+            background: var(--container);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+        }
+
+        .control-value {
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .control-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--canvas);
+            border-radius: 2px;
+            outline: none;
+            border: 1px solid var(--border);
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            transition: transform var(--transition-fast);
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            transition: transform var(--transition-fast);
+        }
+
+        .control-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .control-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .play-toggle-container {
+            background: var(--container);
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .play-toggle-btn {
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 16px 48px;
+            border-radius: var(--radius);
+            transition: all var(--transition-med);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .play-toggle-btn:hover {
+            border-color: var(--accent);
+            background: rgba(255, 69, 0, 0.05);
+        }
+
+        .play-toggle-btn.playing {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: var(--canvas);
+        }
+
+        .info-section {
+            padding: clamp(64px, 10vw, 96px) 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .info-card {
+            background: var(--canvas);
+            padding: 40px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .info-title {
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-title::before {
+            content: '';
+            display: block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            opacity: 0.8;
+        }
+
+        .info-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ================================================================
+           NEWSLETTER
+           ================================================================ */
+        #newsletter {
+            padding: clamp(64px, 10vw, 100px) 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .newsletter-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 48px;
+        }
+
+        .newsletter-text h3 {
+            font-family: var(--sans);
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .newsletter-text p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .newsletter-input {
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 14px 20px;
+            width: 280px;
+            background: var(--container);
+            color: var(--text-primary);
+            letter-spacing: 0.02em;
+        }
+
+        .newsletter-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .newsletter-submit {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--canvas);
+            background: var(--accent);
+            padding: 14px 24px;
+            transition: background var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .newsletter-submit:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ================================================================
+           FOOTER
+           ================================================================ */
+        #site-footer {
+            padding: 40px 0;
+            background: var(--canvas);
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .footer-brand {
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .footer-copy {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.02em;
+        }
+
+        .footer-disclaimer {
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.02em;
+            opacity: 0.6;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-link {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            transition: color var(--transition-fast);
+        }
+
+        .footer-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* ================================================================
+           SCROLL ANIMATIONS
+           ================================================================ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+        @media (max-width: 1024px) {
+            .newsletter-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-center,
+            .header-nav {
+                display: none;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .noise-toggles {
+                grid-template-columns: 1fr;
+                border-bottom: none;
+            }
+            .noise-btn {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .controls-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .newsletter-form {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .newsletter-input {
+                width: 100%;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    
+        /* PRODUCT IMAGE HOVER EFFECT */
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+        }
+        
+        .product-visual:hover .product-img,
+        .hero-product-frame:hover .product-img,
+        .strip-card-visual:hover .product-img,
+        .cart-item-thumb:hover .product-img,
+        .detail-hero-visual:hover .product-img,
+        .lab-visual:hover .product-img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+    </style>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+<body>
+
+    <!-- ============================================================
+         ANNOUNCEMENT BAR
+         ============================================================ -->
+    <div id="announcement-bar">
+        <div class="announce-track">
+            <span>FREE SHIPPING ON ORDERS ABOVE 2,999</span>
+            <div class="announce-separator"></div>
+            <span>BATCH 02 NOW SHIPPING</span>
+            <div class="announce-separator"></div>
+            <span>ALL PRODUCTS DESIGNED FOR REPAIRABILITY</span>
+            <div class="announce-separator"></div>
+            <span>STUDENT DISCOUNT: USE CODE CAMPUS15</span>
+            <div class="announce-separator"></div>
+            <span>FREE SHIPPING ON ORDERS ABOVE 2,999</span>
+            <div class="announce-separator"></div>
+            <span>BATCH 02 NOW SHIPPING</span>
+            <div class="announce-separator"></div>
+            <span>ALL PRODUCTS DESIGNED FOR REPAIRABILITY</span>
+            <div class="announce-separator"></div>
+            <span>STUDENT DISCOUNT: USE CODE CAMPUS15</span>
+            <div class="announce-separator"></div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+    <header id="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <div class="header-left">
+                    <a href="index.html" class="brand-mark">
+                        <svg class="brand-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M11 1L4 11h5l-1 8 7-10h-5l1-8z"/>
+                        </svg>
+                        beenpluggedin
+                    </a>
+                    <span class="version-tag">v2.0-STABLE</span>
+                </div>
+
+                <div class="header-center">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        LAB ONLINE
+                    </div>
+                    <div class="currency-toggle">
+                        <button class="currency-btn active" data-currency="INR">INR</button>
+                        <button class="currency-btn" data-currency="USD">USD</button>
+                    </div>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="catalog.html" class="nav-link">CATALOG</a>
+                    <a href="utilities.html" class="nav-link">UTILITIES</a>
+                    <a href="specs.html" class="nav-link">SPECS</a>
+                    <a href="lab.html" class="nav-link nav-link--active">LAB</a>
+                    <a href="bag.html" class="nav-link nav-link--bag" id="bag-link">BAG (<span id="bag-count">0</span>)</a>
+                </nav>
+
+                <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav -->
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="catalog.html">CATALOG</a>
+        <a href="utilities.html">UTILITIES</a>
+        <a href="specs.html">SPECS</a>
+        <a href="lab.html">LAB</a>
+        <a href="bag.html">BAG (0)</a>
+    </div>
+
+    <!-- ============================================================
+         LAB HERO
+         ============================================================ -->
+    <section class="lab-hero reveal">
+        <div class="container">
+            <h1 class="lab-title">FOCUS AUDIO LAB</h1>
+            <p class="lab-subtitle">Ambient noise generation for deep focus. Built with the Web Audio API.</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         GENERATOR INTERFACE
+         ============================================================ -->
+    <section class="generator-interface reveal">
+        <div class="container">
+            <div class="generator-container">
+                <div class="noise-toggles">
+                    <button class="noise-btn active" data-type="brown">BROWN NOISE</button>
+                    <button class="noise-btn" data-type="pink">PINK NOISE</button>
+                    <button class="noise-btn" data-type="white">WHITE NOISE</button>
+                </div>
+                
+                <div class="visualizer-container">
+                    <canvas id="visualizer"></canvas>
+                </div>
+
+                <div class="controls-row">
+                    <div class="control-group">
+                        <div class="control-header">
+                            <span class="control-label">CUTOFF FREQUENCY</span>
+                            <span class="control-value" id="cutoff-display">8000 Hz</span>
+                        </div>
+                        <input type="range" id="cutoff-slider" class="control-slider" min="100" max="8000" value="8000" step="10">
+                    </div>
+                    <div class="control-group">
+                        <div class="control-header">
+                            <span class="control-label">VOLUME</span>
+                            <span class="control-value" id="volume-display">50%</span>
+                        </div>
+                        <input type="range" id="volume-slider" class="control-slider" min="0" max="100" value="50">
+                    </div>
+                </div>
+
+                <div class="play-toggle-container">
+                    <button class="play-toggle-btn" id="play-toggle">
+                        START GENERATOR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         INFO SECTION
+         ============================================================ -->
+    <section class="info-section reveal">
+        <div class="container">
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3 class="info-title">BROWN NOISE</h3>
+                    <p class="info-desc">Deepest rumble. Random walk signal with -6dB/octave rolloff. Best for blocking speech and intense focus sessions.</p>
+                </div>
+                <div class="info-card">
+                    <h3 class="info-title">PINK NOISE</h3>
+                    <p class="info-desc">Balanced spectrum. Equal energy per octave with -3dB/octave rolloff. Natural and warm, similar to rainfall.</p>
+                </div>
+                <div class="info-card">
+                    <h3 class="info-title">WHITE NOISE</h3>
+                    <p class="info-desc">Full spectrum. Equal energy at every frequency. Clinical and bright. Excellent for masking sudden, sharp sounds.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         NEWSLETTER
+         ============================================================ -->
+    <section id="newsletter" class="reveal">
+        <div class="container">
+            <div class="newsletter-inner">
+                <div class="newsletter-text">
+                    <h3>Stay in the loop.</h3>
+                    <p>Product drops, firmware updates, and studio tips. No spam, ever.</p>
+                </div>
+                <form class="newsletter-form" id="newsletter-form" onsubmit="return false;">
+                    <input type="email" class="newsletter-input" placeholder="you@university.edu" required>
+                    <button type="submit" class="newsletter-submit">SUBSCRIBE</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+    <footer id="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-left">
+                    <div class="footer-brand">beenpluggedin</div>
+                    <div class="footer-copy">2024 beenpluggedin. All rights reserved.</div>
+                    <div class="footer-disclaimer">University assignment project -- MKT906 CA-1</div>
+                </div>
+                <div class="footer-links">
+                    <a href="catalog.html" class="footer-link">CATALOG</a>
+                    <a href="utilities.html" class="footer-link">UTILITIES</a>
+                    <a href="specs.html" class="footer-link">SPECS</a>
+                    <a href="lab.html" class="footer-link">LAB</a>
+                    <a href="#" class="footer-link">RSS</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============================================================
+         JAVASCRIPT
+         ============================================================ -->
+    <script>
+        /* ================================================================
+           CURRENCY TOGGLE (Shared)
+           ================================================================ */
+        const EXCHANGE_RATE = 84.5;
+        let currentCurrency = localStorage.getItem('bpi-currency') || 'INR';
+
+        function initCurrency() {
+            document.querySelectorAll('.currency-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.currency === currentCurrency);
+                btn.addEventListener('click', () => {
+                    currentCurrency = btn.dataset.currency;
+                    localStorage.setItem('bpi-currency', currentCurrency);
+                    updateCurrencyUI();
+                });
+            });
+            updateCurrencyUI();
+        }
+
+        function updateCurrencyUI() {
+            document.querySelectorAll('.currency-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.currency === currentCurrency);
+            });
+
+            document.querySelectorAll('.price-currency-symbol').forEach(el => {
+                el.textContent = currentCurrency === 'INR' ? '\u20B9' : '$';
+            });
+
+            document.querySelectorAll('.price-value').forEach(el => {
+                const val = currentCurrency === 'INR' ? el.dataset.inr : el.dataset.usd;
+                if (val) el.textContent = val;
+            });
+        }
+
+        /* ================================================================
+           BAG COUNTER (Shared)
+           ================================================================ */
+        
+        /* BAG LOGIC */
+        let cart = [];
+        try { cart = JSON.parse(localStorage.getItem('bpi-cart')) || []; } catch(e) { cart = []; }
+
+        function getCartCount() { return cart.reduce((sum, item) => sum + item.qty, 0); }
+
+        function updateBagUI() {
+            const count = getCartCount();
+            const el = document.getElementById('bag-count');
+            if (el) el.textContent = count;
+            const mobileEl = document.getElementById('bag-count-mobile') || document.querySelector('.mobile-bag-count');
+            if (mobileEl) mobileEl.textContent = count;
+            const link = document.getElementById('bag-link');
+            if (link) link.classList.toggle('has-items', count > 0);
+            const itemCount = document.getElementById('bag-item-count');
+            if (itemCount) itemCount.textContent = count;
+            if (typeof renderCartItems === 'function') renderCartItems();
+        }
+
+        function saveCart() {
+            localStorage.setItem('bpi-cart', JSON.stringify(cart));
+            localStorage.setItem('bpi-bag', getCartCount());
+            updateBagUI();
+            updateCurrencyUI();
+        }
+
+        window.addToBagDetailed = function(product) {
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) { existing.qty += 1; } else { cart.push({...product, qty: 1}); }
+            saveCart();
+            const link = document.getElementById('bag-link');
+            if (link) {
+                link.style.background = 'var(--accent)';
+                link.style.color = 'var(--canvas)';
+                setTimeout(() => { link.style.background = ''; link.style.color = ''; }, 300);
+            }
+        };
+
+        document.querySelectorAll('.add-to-bag-btn, .btn-primary').forEach(btn => {
+            if (btn.textContent.trim() === 'ADD TO BAG' || btn.classList.contains('add-to-bag-btn')) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const card = btn.closest('.strip-card') || btn.closest('.featured-info') || btn.closest('.product-card') || btn.closest('.lab-card') || btn.closest('.detail-hero-content');
+                    let product = { id: 'BPI-UNKNOWN', name: 'Hardware Product', price_inr: 0, price_usd: 0 };
+                    
+                    if (card) {
+                        const skuEl = card.querySelector('.strip-card-sku') || card.querySelector('.product-sku') || card.querySelector('.hero-tag');
+                        if (skuEl) product.id = skuEl.textContent.trim();
+                        if (!skuEl && btn.closest('.featured-info')) product.id = 'BPI-PL01';
+                        
+                        const nameEl = card.querySelector('.strip-card-name') || card.querySelector('.featured-product-name') || card.querySelector('.product-title') || card.querySelector('.hero-headline');
+                        if (nameEl) product.name = nameEl.textContent.trim().replace(' Wireless Headphones', '');
+                        
+                        const priceVal = card.querySelector('.price-value');
+                        if (priceVal) {
+                            product.price_inr = parseInt(priceVal.dataset.inr.replace(/,/g, ''), 10);
+                            product.price_usd = parseInt(priceVal.dataset.usd, 10);
+                        }
+                    }
+                    
+                    addToBagDetailed(product);
+                    const originalText = btn.textContent;
+                    btn.textContent = 'ADDED';
+                    setTimeout(() => { btn.textContent = originalText; }, 1200);
+                });
+            }
+        });
+
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+
+        if (mobileToggle && mobileNav) {
+            mobileToggle.addEventListener('click', () => {
+                mobileToggle.classList.toggle('open');
+                mobileNav.classList.toggle('open');
+                document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
+            });
+        }
+
+        /* ================================================================
+           SCROLL REVEAL (Shared)
+           ================================================================ */
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        /* ================================================================
+           NEWSLETTER (Shared)
+           ================================================================ */
+        document.getElementById('newsletter-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('.newsletter-submit');
+            btn.textContent = 'SUBSCRIBED';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                btn.textContent = 'SUBSCRIBE';
+                btn.style.background = '';
+            }, 2000);
+        });
+
+        /* ================================================================
+           AUDIO LAB LOGIC
+           ================================================================ */
+        let audioCtx = null;
+        let noiseNode = null;
+        let filterNode = null;
+        let gainNode = null;
+        let analyserNode = null;
+        let isPlaying = false;
+        let activeNoiseType = 'brown';
+        
+        let noiseBuffers = { white: null, pink: null, brown: null };
+
+        const cutoffSlider = document.getElementById('cutoff-slider');
+        const cutoffDisplay = document.getElementById('cutoff-display');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeDisplay = document.getElementById('volume-display');
+        const playToggle = document.getElementById('play-toggle');
+        const noiseBtns = document.querySelectorAll('.noise-btn');
+
+        const canvas = document.getElementById('visualizer');
+        const canvasCtx = canvas.getContext('2d');
+        let animId;
+
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const bufferSize = audioCtx.sampleRate * 2; // 2 seconds
+            
+            noiseBuffers.white = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            noiseBuffers.pink = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            noiseBuffers.brown = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            
+            let whiteOutput = noiseBuffers.white.getChannelData(0);
+            let pinkOutput = noiseBuffers.pink.getChannelData(0);
+            let brownOutput = noiseBuffers.brown.getChannelData(0);
+            
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+            let lastOut = 0;
+
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                whiteOutput[i] = white;
+                
+                // Pink noise
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                pinkOutput[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                pinkOutput[i] *= 0.11; 
+                b6 = white * 0.115926;
+                
+                // Brown noise
+                let brown = (lastOut + (0.02 * white)) / 1.02;
+                brownOutput[i] = brown * 3.5;
+                lastOut = brown;
+            }
+
+            filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = 'lowpass';
+            filterNode.frequency.value = parseInt(cutoffSlider.value);
+
+            gainNode = audioCtx.createGain();
+            gainNode.gain.value = parseInt(volumeSlider.value) / 100;
+
+            analyserNode = audioCtx.createAnalyser();
+            analyserNode.fftSize = 256;
+
+            filterNode.connect(gainNode);
+            gainNode.connect(analyserNode);
+            analyserNode.connect(audioCtx.destination);
+        }
+
+        function playNoise(type) {
+            if (!audioCtx) initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if (noiseNode) {
+                const oldNode = noiseNode;
+                // Fade out could be implemented here via gainNode, but for simplicity we replace it
+                oldNode.stop();
+                oldNode.disconnect();
+            }
+            
+            noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = noiseBuffers[type];
+            noiseNode.loop = true;
+            noiseNode.connect(filterNode);
+            noiseNode.start();
+        }
+
+        function togglePlay() {
+            if (!isPlaying) {
+                playNoise(activeNoiseType);
+                isPlaying = true;
+                playToggle.textContent = 'STOP GENERATOR';
+                playToggle.classList.add('playing');
+                drawVisualizer();
+            } else {
+                if (noiseNode) {
+                    noiseNode.stop();
+                    noiseNode.disconnect();
+                    noiseNode = null;
+                }
+                isPlaying = false;
+                playToggle.textContent = 'START GENERATOR';
+                playToggle.classList.remove('playing');
+                cancelAnimationFrame(animId);
+                clearVisualizer();
+            }
+        }
+
+        // Toggles
+        noiseBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                noiseBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeNoiseType = btn.dataset.type;
+                if (isPlaying) {
+                    playNoise(activeNoiseType);
+                }
+            });
+        });
+
+        playToggle.addEventListener('click', togglePlay);
+
+        // Sliders
+        cutoffSlider.addEventListener('input', (e) => {
+            cutoffDisplay.textContent = e.target.value + ' Hz';
+            if (filterNode) {
+                filterNode.frequency.setTargetAtTime(e.target.value, audioCtx.currentTime, 0.05);
+            }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            volumeDisplay.textContent = e.target.value + '%';
+            if (gainNode) {
+                gainNode.gain.setTargetAtTime(e.target.value / 100, audioCtx.currentTime, 0.05);
+            }
+        });
+
+        // Visualizer
+        function resizeCanvas() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        // initial resize
+        setTimeout(resizeCanvas, 100);
+
+        function drawVisualizer() {
+            if (!isPlaying) return;
+            animId = requestAnimationFrame(drawVisualizer);
+            
+            const bufferLength = analyserNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyserNode.getByteFrequencyData(dataArray);
+            
+            // clear
+            canvasCtx.fillStyle = '#0e0f12';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Grid lines
+            canvasCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+            canvasCtx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=40) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(i, 0);
+                canvasCtx.lineTo(i, canvas.height);
+                canvasCtx.stroke();
+            }
+            for(let i=0; i<canvas.height; i+=40) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(0, i);
+                canvasCtx.lineTo(canvas.width, i);
+                canvasCtx.stroke();
+            }
+            
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height;
+                
+                const gradient = canvasCtx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+                gradient.addColorStop(0, '#ff4500');
+                gradient.addColorStop(1, 'rgba(255,69,0,0.1)');
+                
+                canvasCtx.fillStyle = gradient;
+                canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                
+                x += barWidth + 1;
+            }
+        }
+
+        function clearVisualizer() {
+            canvasCtx.fillStyle = '#0e0f12';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Grid lines
+            canvasCtx.strokeStyle = 'rgba(255,255,255,0.03)';
+            canvasCtx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=40) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(i, 0);
+                canvasCtx.lineTo(i, canvas.height);
+                canvasCtx.stroke();
+            }
+            for(let i=0; i<canvas.height; i+=40) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(0, i);
+                canvasCtx.lineTo(canvas.width, i);
+                canvasCtx.stroke();
+            }
+        }
+
+        /* ================================================================
+           INIT
+           ================================================================ */
+        initCurrency();
+        updateBagUI();
+        
+        // Initial visualizer background
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            clearVisualizer();
+        });
+    </script>
+</body>
+</html>

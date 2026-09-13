@@ -1,0 +1,64 @@
+beenpluggedin Website Documentation
+This document provides a comprehensive overview of the beenpluggedin eCommerce and brand website. It is designed to give another LLM or developer full context on the brand, its technical architecture, design system, and product catalog.
+
+1. Project Overview & Brand Identity
+Brand Name: beenpluggedin Tagline: "Engineered audio hardware and interactive utilities built for budget creators. Acoustic precision at student prices." Mission Statement: The brand focuses on delivering high-end, measurable, repairable, and non-subscription-based audio tech. The ethos is anti-marketing fluff, leaning heavily into technical transparency, industrial design, and raw engineering.
+
+2. Technical Architecture
+The website is a static multi-page application built entirely with native, zero-dependency web technologies:
+
+HTML5: Semantic structure, completely avoiding heavy frameworks like React or Vue.
+CSS3: Pure Vanilla CSS utilizing native CSS variables for design tokens. No Tailwind or Bootstrap.
+JavaScript (ES6+): Vanilla JS used for interactive components (cart management via localStorage, currency toggling, page loaders, IntersectionObserver scroll animations, and audio utilities).
+3. Design System & Aesthetics
+The design language is characterized by a premium, moody, industrial tech aesthetic ("dark mode" native).
+
+Design Tokens
+Canvas (Background): #08080a (Deep black/grey)
+Containers: #0e0f12, #131419, #1a1b21
+Text: #f4f4f6 (Primary), #8e8e96 (Secondary), #5a5a62 (Tertiary)
+Accent: #ff4500 (Vibrant orange-red)
+Success: #22c55e (Green)
+Typography:
+Inter (Sans-serif) for primary UI and copy.
+JetBrains Mono for technical specifications, prices, labels, and micro-copy.
+UX/UI Features
+Lamalama-inspired Page Loader: A full-screen fixed overlay with a rapidly ticking percentage counter that fades out on load.
+Scroll Reveals: Text and sections use clip-path: inset(0 0 100% 0) and transform: translateY(32px) coupled with IntersectionObserver to animate into view as the user scrolls.
+Micro-interactions: Interactive hover states on product images (zoom and brightness filter via transform: scale(1.05)), custom scrollbars, and pulsing status dots ("LAB ONLINE").
+Product Visuals: Originally built with complex inline SVGs mimicking technical CAD drawings and exploded isometric views, now updated to utilize hyper-realistic, minimal-branding AI-generated product photography (.product-img).
+4. Site Structure & Pages
+The site is divided into several standalone HTML files:
+
+index.html (Homepage): Features a scrolling announcement marquee, a massive typographic hero section, a 3-column value proposition grid, and a featured product spotlight showcasing an exploded isometric view of the PLUG-01 headphones.
+catalog.html (Hardware Catalog): A responsive grid layout of the full 4-product lineup, complete with filtering tabs (All, Audio, Recording, Acoustics) and quick "Add to Bag" functionality.
+bag.html (Shopping Cart): A dynamic checkout interface. It pulls cart data from localStorage, dynamically calculating subtotals and shipping (free above 2,999 INR), and updates the UI entirely via Vanilla JS.
+utilities.html (Interactive Tools): Houses free browser-based audio tools (e.g., Troubleshooter, Acoustic Calculator, Noise Generator) targeted at audio engineers and students.
+lab.html (Focus Audio Lab): A dedicated environment for experimental audio tech or concentration-focused soundscapes.
+specs.html (Technical Matrix): A dense, brutalist table layout comparing the granular technical specifications (THD, impedance, materials, etc.) of all products side-by-side.
+5. Product Lineup
+The hardware catalog consists of 4 distinct, premium audio products:
+
+1. PLUG-01 (Flagship Wireless Headphones)
+Type: Over-ear, closed-back wireless headphones with hybrid ANC.
+Specs: 40mm Titanium-coated drivers, 60-hour runtime, Bluetooth 5.3, LDAC codec support, <0.04% THD.
+Price: 4,490 INR / 53 USD
+Visuals: Matte black shell, protein leather cushions, exposed copper coil details.
+2. VOICE-01 (Studio Condenser Microphone)
+Type: Desktop condenser mic with digital/analog versatility.
+Specs: 16mm condenser capsule, dual USB-C & XLR outputs, built-in DSP, capacitive touch mute.
+Price: 3,990 INR / 47 USD
+Visuals: Brushed aluminum cylinder, fine metal mesh grille, minimal laser-etched branding.
+3. ECHO-01 (Acoustic Treatment Panels)
+Type: Hexagonal wall-mounted acoustic panels.
+Specs: 300mm edge, NRC 0.85 sound absorption rating, made from recycled Eco-Felt PET, magnetic grid mounting system.
+Price: 1,990 INR / 23 USD (Sold as a 6-Pack)
+Visuals: Dark grey porous felt, subtle woven tags.
+4. CADENCE-01 (Portable Hi-Res DAC / Amp)
+Type: Pocket-sized digital-to-analog converter and headphone amplifier.
+Specs: ESS Sabre 9038Q2M chip, 32-bit / 384kHz decoding, 4.4mm balanced and 3.5mm single-ended outputs, machined aluminum chassis.
+Price: 2,490 INR / 29 USD
+Visuals: Chamfered aerospace-grade aluminum edges, tactile volume knob, tiny silk-screened grey logo.
+6. Global State Management
+Currency Toggle: A global toggle in the header switches pricing site-wide between INR (₹) and USD ($). The preference is saved in localStorage (bpi-currency) and applies a flat exchange rate multiplier (1 USD = 84.5 INR).
+Cart State: The cart array is continuously synced to localStorage (bpi-cart). The header bag icon dynamically updates its badge count and border color when items are added.

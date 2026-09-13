@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="beenpluggedin — Technical Specifications. Transparent, measurable specs for all hardware.">
+    <title>beenpluggedin -- Technical Specifications</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           DESIGN TOKENS & BASE (Copied from index.html)
+           ================================================================ */
+        :root {
+            --canvas: #08080a;
+            --container: #0e0f12;
+            --container-raised: #131419;
+            --container-hover: #18191f;
+            --surface: #1a1b21;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.16);
+            --border-active: rgba(255, 255, 255, 0.24);
+            --text-primary: #f4f4f6;
+            --text-secondary: #8e8e96;
+            --text-tertiary: #5a5a62;
+            --accent: #ff4500;
+            --accent-dim: rgba(255, 69, 0, 0.12);
+            --accent-hover: #ff5a1a;
+            --accent-glow: rgba(255, 69, 0, 0.06);
+            --success: #22c55e;
+            --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+            --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --radius: 2px;
+            --transition-fast: 100ms ease;
+            --transition-med: 200ms ease;
+            --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
+        body { font-family: var(--sans); background-color: var(--canvas); color: var(--text-primary); line-height: 1.5; overflow-x: hidden; }
+        ::selection { background: var(--accent); color: var(--canvas); }
+        a { color: inherit; text-decoration: none; }
+        button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+        input, select { font-family: inherit; color: inherit; background: none; border: none; outline: none; }
+        img, svg { display: block; max-width: 100%; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--canvas); }
+        ::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+        .container { width: 100%; max-width: 1320px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 48px); }
+        .container--narrow { max-width: 800px; }
+
+        /* ================================================================
+           ANNOUNCEMENT BAR & HEADER (Copied from index.html)
+           ================================================================ */
+        #announcement-bar { background: var(--accent); color: var(--canvas); overflow: hidden; height: 36px; display: flex; align-items: center; position: relative; }
+        .announce-track { display: flex; animation: marquee 30s linear infinite; white-space: nowrap; }
+        .announce-track span { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; padding: 0 48px; }
+        .announce-separator { width: 4px; height: 4px; background: var(--canvas); border-radius: 50%; flex-shrink: 0; align-self: center; opacity: 0.5; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        #site-header { position: sticky; top: 0; z-index: 1000; background: rgba(8, 8, 10, 0.94); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 24px; }
+        .header-left { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+        .brand-mark { display: flex; align-items: center; gap: 8px; font-family: var(--sans); font-weight: 700; font-size: 15px; letter-spacing: -0.02em; white-space: nowrap; }
+        .brand-icon { width: 20px; height: 20px; color: var(--accent); }
+        .version-tag { font-family: var(--mono); font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.05em; padding: 3px 8px; border: 1px solid var(--border); border-radius: var(--radius); white-space: nowrap; }
+        
+        .header-center { display: flex; align-items: center; gap: 20px; }
+        .status-indicator { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--text-secondary); letter-spacing: 0.06em; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse-dot 2.5s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        .currency-toggle { font-family: var(--mono); font-size: 11px; display: flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .currency-btn { padding: 4px 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: var(--text-tertiary); transition: all var(--transition-fast); }
+        .currency-btn.active { background: var(--text-primary); color: var(--canvas); }
+        .currency-btn:hover:not(.active) { color: var(--text-primary); }
+
+        .header-nav { display: flex; align-items: center; gap: 0; }
+        .nav-link { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--text-secondary); padding: 8px 16px; transition: color var(--transition-fast); white-space: nowrap; position: relative; }
+        .nav-link:hover { color: var(--text-primary); }
+        .nav-link--active { color: var(--text-primary); }
+        .nav-link--active::after { content: ''; position: absolute; bottom: -1px; left: 16px; right: 16px; height: 1px; background: var(--accent); }
+        .nav-link--bag { border: 1px solid var(--border); border-radius: var(--radius); margin-left: 8px; transition: all var(--transition-fast); }
+        .nav-link--bag:hover { border-color: var(--border-hover); }
+        .nav-link--bag.has-items { border-color: var(--accent); color: var(--accent); }
+
+        .mobile-toggle { display: none; width: 36px; height: 36px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--border); border-radius: var(--radius); }
+        .mobile-toggle span { display: block; width: 16px; height: 1px; background: var(--text-primary); transition: all var(--transition-med); }
+        .mobile-toggle.open span:nth-child(1) { transform: translateY(3px) rotate(45deg); }
+        .mobile-toggle.open span:nth-child(2) { opacity: 0; }
+        .mobile-toggle.open span:nth-child(3) { transform: translateY(-3px) rotate(-45deg); }
+
+        .mobile-nav { display: none; position: fixed; top: 97px; left: 0; right: 0; bottom: 0; background: var(--canvas); z-index: 999; padding: 32px; flex-direction: column; gap: 0; border-top: 1px solid var(--border); }
+        .mobile-nav.open { display: flex; }
+        .mobile-nav a { font-family: var(--mono); font-size: 14px; letter-spacing: 0.08em; color: var(--text-secondary); padding: 20px 0; border-bottom: 1px solid var(--border); transition: color var(--transition-fast); }
+        .mobile-nav a:hover { color: var(--text-primary); }
+
+        /* ================================================================
+           SPECS PAGE STYLES
+           ================================================================ */
+        .page-hero { padding: clamp(64px, 10vw, 96px) 0 48px; border-bottom: 1px solid var(--border); }
+        .page-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--accent); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+        .page-eyebrow::before { content: ''; width: 32px; height: 1px; background: var(--accent); }
+        .page-title { font-family: var(--sans); font-size: clamp(36px, 5vw, 64px); font-weight: 800; letter-spacing: -0.03em; margin-bottom: 24px; }
+        .page-subtitle { font-size: 16px; color: var(--text-secondary); line-height: 1.7; max-width: 600px; }
+
+        .section-header { margin: 64px 0 32px; }
+        .section-title { font-family: var(--sans); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .section-desc { font-size: 14px; color: var(--text-secondary); }
+
+        /* Comparison Tables */
+        .table-wrapper { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 64px; }
+        .comparison-table { width: 100%; border-collapse: collapse; min-width: 800px; text-align: left; }
+        .comparison-table th, .comparison-table td { padding: 16px 24px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); font-family: var(--mono); font-size: 13px; }
+        .comparison-table th:last-child, .comparison-table td:last-child { border-right: none; }
+        
+        .comparison-table th { background: var(--container-raised); font-weight: 600; color: var(--text-secondary); letter-spacing: 0.04em; }
+        .comparison-table th.col-highlight { background: var(--container-hover); color: var(--text-primary); border-top: 2px solid var(--accent); }
+        
+        .comparison-table tr:last-child td { border-bottom: none; }
+        .comparison-table tr:nth-child(even) td { background: var(--container); }
+        .comparison-table tr:nth-child(odd) td { background: var(--canvas); }
+        
+        .comparison-table td.col-highlight { background: var(--accent-glow) !important; font-weight: 500; }
+        
+        .spec-label { color: var(--text-secondary); }
+        .val-win { color: var(--accent); font-weight: 600; }
+        
+        .price-currency-symbol { margin-right: 2px; }
+
+        /* Expandable Spec Sheets */
+        .spec-sheets { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 64px; }
+        .spec-sheet-item { background: var(--canvas); }
+        
+        .spec-sheet-header { padding: 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background var(--transition-fast); }
+        .spec-sheet-header:hover { background: var(--container); }
+        .spec-sheet-title { font-family: var(--sans); font-size: 18px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 16px; }
+        .spec-sheet-sku { font-family: var(--mono); font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.1em; border: 1px solid var(--border); padding: 4px 8px; border-radius: var(--radius); }
+        .spec-sheet-toggle { color: var(--text-secondary); transition: transform var(--transition-med); }
+        .spec-sheet-item.active .spec-sheet-toggle { transform: rotate(180deg); }
+        
+        .spec-sheet-content { display: none; padding: 0 24px 24px; }
+        .spec-sheet-item.active .spec-sheet-content { display: block; }
+        
+        .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 24px; margin-top: 16px; border-top: 1px solid var(--border); padding-top: 24px; }
+        .spec-detail { display: flex; flex-direction: column; gap: 6px; }
+        .spec-detail-label { font-family: var(--mono); font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.08em; }
+        .spec-detail-val { font-family: var(--mono); font-size: 13px; color: var(--text-primary); }
+
+        /* ================================================================
+           FOOTER (Copied from index.html)
+           ================================================================ */
+        #newsletter { padding: clamp(64px, 10vw, 100px) 0; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+        .newsletter-inner { display: flex; align-items: center; justify-content: space-between; gap: 48px; }
+        .newsletter-text h3 { font-family: var(--sans); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .newsletter-text p { font-size: 14px; color: var(--text-secondary); }
+        .newsletter-form { display: flex; gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; flex-shrink: 0; }
+        .newsletter-input { font-family: var(--mono); font-size: 12px; padding: 14px 20px; width: 280px; background: var(--container); color: var(--text-primary); letter-spacing: 0.02em; }
+        .newsletter-input::placeholder { color: var(--text-tertiary); }
+        .newsletter-submit { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: var(--canvas); background: var(--accent); padding: 14px 24px; transition: background var(--transition-fast); white-space: nowrap; }
+        .newsletter-submit:hover { background: var(--accent-hover); }
+
+        #site-footer { padding: 40px 0; background: var(--canvas); }
+        .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+        .footer-left { display: flex; flex-direction: column; gap: 6px; }
+        .footer-brand { font-family: var(--sans); font-weight: 700; font-size: 14px; }
+        .footer-copy { font-family: var(--mono); font-size: 11px; color: var(--text-tertiary); letter-spacing: 0.02em; }
+        .footer-disclaimer { font-family: var(--mono); font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.02em; opacity: 0.6; }
+        .footer-links { display: flex; gap: 24px; }
+        .footer-link { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--text-tertiary); transition: color var(--transition-fast); }
+        .footer-link:hover { color: var(--text-primary); }
+
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 1024px) {
+            .newsletter-inner { flex-direction: column; text-align: center; }
+        }
+        @media (max-width: 768px) {
+            .header-center, .header-nav { display: none; }
+            .mobile-toggle { display: flex; }
+            .newsletter-form { flex-direction: column; width: 100%; }
+            .newsletter-input { width: 100%; }
+            .footer-inner { flex-direction: column; text-align: center; gap: 20px; }
+            .footer-links { flex-wrap: wrap; justify-content: center; }
+        }
+    
+        /* PRODUCT IMAGE HOVER EFFECT */
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+        }
+        
+        .product-visual:hover .product-img,
+        .hero-product-frame:hover .product-img,
+        .strip-card-visual:hover .product-img,
+        .cart-item-thumb:hover .product-img,
+        .detail-hero-visual:hover .product-img,
+        .lab-visual:hover .product-img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+    </style>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+<body>
+
+    <!-- ANNOUNCEMENT BAR -->
+    <div id="announcement-bar">
+        <div class="announce-track">
+            <span>FREE SHIPPING ON ORDERS ABOVE 2,999</span>
+            <div class="announce-separator"></div>
+            <span>BATCH 02 NOW SHIPPING</span>
+            <div class="announce-separator"></div>
+            <span>ALL PRODUCTS DESIGNED FOR REPAIRABILITY</span>
+            <div class="announce-separator"></div>
+            <span>STUDENT DISCOUNT: USE CODE CAMPUS15</span>
+            <div class="announce-separator"></div>
+            <span>FREE SHIPPING ON ORDERS ABOVE 2,999</span>
+            <div class="announce-separator"></div>
+            <span>BATCH 02 NOW SHIPPING</span>
+            <div class="announce-separator"></div>
+            <span>ALL PRODUCTS DESIGNED FOR REPAIRABILITY</span>
+            <div class="announce-separator"></div>
+            <span>STUDENT DISCOUNT: USE CODE CAMPUS15</span>
+            <div class="announce-separator"></div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header id="site-header">
+        <div class="container">
+            <div class="header-inner">
+                <div class="header-left">
+                    <a href="index.html" class="brand-mark">
+                        <svg class="brand-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M11 1L4 11h5l-1 8 7-10h-5l1-8z"/>
+                        </svg>
+                        beenpluggedin
+                    </a>
+                    <span class="version-tag">v2.0-STABLE</span>
+                </div>
+
+                <div class="header-center">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        LAB ONLINE
+                    </div>
+                    <div class="currency-toggle">
+                        <button class="currency-btn active" data-currency="INR">INR</button>
+                        <button class="currency-btn" data-currency="USD">USD</button>
+                    </div>
+                </div>
+
+                <nav class="header-nav">
+                    <a href="catalog.html" class="nav-link">CATALOG</a>
+                    <a href="utilities.html" class="nav-link">UTILITIES</a>
+                    <a href="specs.html" class="nav-link nav-link--active">SPECS</a>
+                    <a href="lab.html" class="nav-link">LAB</a>
+                    <a href="bag.html" class="nav-link nav-link--bag" id="bag-link">BAG (<span id="bag-count">0</span>)</a>
+                </nav>
+
+                <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav -->
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="catalog.html">CATALOG</a>
+        <a href="utilities.html">UTILITIES</a>
+        <a href="specs.html" class="nav-link--active">SPECS</a>
+        <a href="lab.html">LAB</a>
+        <a href="bag.html">BAG (0)</a>
+    </div>
+
+    <main>
+        <section class="page-hero">
+            <div class="container">
+                <div class="page-eyebrow">OPEN DOCUMENTATION</div>
+                <h1 class="page-title">Technical Specifications</h1>
+                <p class="page-subtitle">Transparent, measurable specs for all beenpluggedin hardware. No marketing fluff, just the data you need to make an informed decision against the established industry leaders.</p>
+            </div>
+        </section>
+
+        <section class="container reveal">
+            <div class="section-header">
+                <h2 class="section-title">Headphones Comparison</h2>
+                <p class="section-desc">Over-ear wireless category.</p>
+            </div>
+            
+            <div class="table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Specification</th>
+                            <th class="col-highlight">PLUG-01</th>
+                            <th>Sony WH-CH520</th>
+                            <th>JBL Tune 510BT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="spec-label">Price</td>
+                            <td class="col-highlight"><span class="price-currency-symbol">&#8377;</span><span class="price-value" data-inr="4,490" data-usd="53">4,490</span></td>
+                            <td><span class="price-currency-symbol">&#8377;</span><span class="price-value" data-inr="3,499" data-usd="41">3,499</span></td>
+                            <td><span class="price-currency-symbol">&#8377;</span><span class="price-value" data-inr="2,999" data-usd="36">2,999</span></td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Driver</td>
+                            <td class="col-highlight val-win">40mm Titanium</td>
+                            <td>30mm</td>
+                            <td>32mm</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">THD</td>
+                            <td class="col-highlight val-win">&lt;0.04%</td>
+                            <td>&lt;1%</td>
+                            <td>&lt;1%</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Frequency Range</td>
+                            <td class="col-highlight val-win">5Hz-40kHz</td>
+                            <td>20Hz-20kHz</td>
+                            <td>20Hz-20kHz</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Battery Life</td>
+                            <td class="col-highlight val-win">60H</td>
+                            <td>50H</td>
+                            <td>40H</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Active Noise Cancellation</td>
+                            <td class="col-highlight val-win">Hybrid ANC</td>
+                            <td>None</td>
+                            <td>None</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Codec Support</td>
+                            <td class="col-highlight val-win">LDAC, AAC, SBC</td>
+                            <td>SBC, AAC</td>
+                            <td>SBC</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Connectivity</td>
+                            <td class="col-highlight val-win">BT 5.3</td>
+                            <td>BT 5.2</td>
+                            <td>BT 5.0</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Repairability</td>
+                            <td class="col-highlight val-win">Full (published schematics)</td>
+                            <td>Limited</td>
+                            <td>None</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-header">
+                <h2 class="section-title">Microphones Comparison</h2>
+                <p class="section-desc">Condenser microphone category.</p>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Specification</th>
+                            <th class="col-highlight">VOICE-01</th>
+                            <th>Audio-Technica AT2020</th>
+                            <th>FIFINE K669B</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="spec-label">Price</td>
+                            <td class="col-highlight"><span class="price-currency-symbol">&#8377;</span><span class="price-value" data-inr="3,990" data-usd="47">3,990</span></td>
+                            <td><span class="price-currency-symbol">&#8377;</span><span class="price-value" data-inr="8,500" data-usd="101">8,500</span></td>
+                            <td><span class="price-currency-symbol">&#8377;</span><span class="price-value" data-inr="2,200" data-usd="26">2,200</span></td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Type</td>
+                            <td class="col-highlight">Condenser</td>
+                            <td>Condenser</td>
+                            <td>Condenser</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Connection</td>
+                            <td class="col-highlight val-win">USB-C + XLR</td>
+                            <td>XLR Only</td>
+                            <td>USB Only</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Freq Response</td>
+                            <td class="col-highlight">20Hz-20kHz</td>
+                            <td>20Hz-20kHz</td>
+                            <td>20Hz-20kHz</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">DSP</td>
+                            <td class="col-highlight val-win">Hardware DSP</td>
+                            <td>None</td>
+                            <td>None</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Noise Filter</td>
+                            <td class="col-highlight val-win">Touch Mute</td>
+                            <td>None</td>
+                            <td>None</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Polar Pattern</td>
+                            <td class="col-highlight">Cardioid</td>
+                            <td>Cardioid</td>
+                            <td>Cardioid</td>
+                        </tr>
+                        <tr>
+                            <td class="spec-label">Repairability</td>
+                            <td class="col-highlight val-win">Full</td>
+                            <td>Limited</td>
+                            <td>None</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-header">
+                <h2 class="section-title">Individual Spec Sheets</h2>
+                <p class="section-desc">Detailed hardware measurements and dimensional data.</p>
+            </div>
+
+            <div class="spec-sheets">
+                <!-- PLUG-01 -->
+                <div class="spec-sheet-item">
+                    <div class="spec-sheet-header">
+                        <div class="spec-sheet-title">
+                            PLUG-01 Wireless Headphones
+                            <span class="spec-sheet-sku">BPI-PL01</span>
+                        </div>
+                        <svg class="spec-sheet-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="spec-sheet-content">
+                        <div class="spec-grid">
+                            <div class="spec-detail"><span class="spec-detail-label">DRIVER MATERIAL</span><span class="spec-detail-val">Titanium Coated Dome</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">DRIVER SIZE</span><span class="spec-detail-val">40mm Dynamic</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">IMPEDANCE</span><span class="spec-detail-val">32 Ohms</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">SENSITIVITY</span><span class="spec-detail-val">105dB @ 1kHz/1mW</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">SUPPORTED CODECS</span><span class="spec-detail-val">LDAC, AAC, SBC</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">ANC MODES</span><span class="spec-detail-val">Hybrid ANC, Transparency, Off</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">CHARGING</span><span class="spec-detail-val">USB-C (Fast Charge: 10m = 5h)</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">WEIGHT</span><span class="spec-detail-val">245g</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VOICE-01 -->
+                <div class="spec-sheet-item">
+                    <div class="spec-sheet-header">
+                        <div class="spec-sheet-title">
+                            VOICE-01 Condenser Microphone
+                            <span class="spec-sheet-sku">BPI-VC01</span>
+                        </div>
+                        <svg class="spec-sheet-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="spec-sheet-content">
+                        <div class="spec-grid">
+                            <div class="spec-detail"><span class="spec-detail-label">CAPSULE TYPE</span><span class="spec-detail-val">16mm Electret Condenser</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">SAMPLE RATE</span><span class="spec-detail-val">192kHz</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">BIT DEPTH</span><span class="spec-detail-val">24-bit</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">MAX SPL</span><span class="spec-detail-val">120dB</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">POWER REQUIREMENT</span><span class="spec-detail-val">5V 150mA (USB) / 48V Phantom (XLR)</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">MOUNTING</span><span class="spec-detail-val">Standard 5/8" Thread</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">I/O</span><span class="spec-detail-val">USB-C, XLR, 3.5mm Monitor</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">WEIGHT</span><span class="spec-detail-val">320g (without stand)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ECHO-01 -->
+                <div class="spec-sheet-item">
+                    <div class="spec-sheet-header">
+                        <div class="spec-sheet-title">
+                            ECHO-01 Acoustic Panels
+                            <span class="spec-sheet-sku">BPI-EC01</span>
+                        </div>
+                        <svg class="spec-sheet-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="spec-sheet-content">
+                        <div class="spec-grid">
+                            <div class="spec-detail"><span class="spec-detail-label">MATERIAL</span><span class="spec-detail-val">100% Recycled PET Felt</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">NRC RATING</span><span class="spec-detail-val">0.85 (Noise Reduction Coefficient)</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">DIMENSIONS (PER PANEL)</span><span class="spec-detail-val">300mm x 260mm x 12mm</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">WEIGHT (PER PANEL)</span><span class="spec-detail-val">110g</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">FIRE RATING</span><span class="spec-detail-val">Class B (EN 13501-1)</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">MOUNTING SYSTEM</span><span class="spec-detail-val">Adhesive Metal Plates + Magnets</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">PACKAGE CONTENTS</span><span class="spec-detail-val">6 Panels, 18 Magnets, Mounting Template</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CADENCE-01 -->
+                <div class="spec-sheet-item">
+                    <div class="spec-sheet-header">
+                        <div class="spec-sheet-title">
+                            CADENCE-01 Hi-Res DAC
+                            <span class="spec-sheet-sku">BPI-CD01</span>
+                        </div>
+                        <svg class="spec-sheet-toggle" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="spec-sheet-content">
+                        <div class="spec-grid">
+                            <div class="spec-detail"><span class="spec-detail-label">DAC CHIP</span><span class="spec-detail-val">Dual ESS Sabre ES9038Q2M</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">MAX RESOLUTION</span><span class="spec-detail-val">32-bit/384kHz, DSD256</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">SNR</span><span class="spec-detail-val">122dB</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">OUTPUT IMPEDANCE</span><span class="spec-detail-val">&lt;0.5 Ohms</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">POWER OUTPUT (3.5MM)</span><span class="spec-detail-val">150mW @ 32 Ohms</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">POWER OUTPUT (4.4MM)</span><span class="spec-detail-val">300mW @ 32 Ohms</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">INPUTS</span><span class="spec-detail-val">USB-C</span></div>
+                            <div class="spec-detail"><span class="spec-detail-label">OUTPUTS</span><span class="spec-detail-val">3.5mm Single-ended, 4.4mm Balanced</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- NEWSLETTER -->
+    <section id="newsletter" class="reveal">
+        <div class="container">
+            <div class="newsletter-inner">
+                <div class="newsletter-text">
+                    <h3>Stay in the loop.</h3>
+                    <p>Product drops, firmware updates, and studio tips. No spam, ever.</p>
+                </div>
+                <form class="newsletter-form" id="newsletter-form" onsubmit="return false;">
+                    <input type="email" class="newsletter-input" placeholder="you@university.edu" required>
+                    <button type="submit" class="newsletter-submit">SUBSCRIBE</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="site-footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-left">
+                    <div class="footer-brand">beenpluggedin</div>
+                    <div class="footer-copy">2024 beenpluggedin. All rights reserved.</div>
+                    <div class="footer-disclaimer">University assignment project -- MKT906 CA-1</div>
+                </div>
+                <div class="footer-links">
+                    <a href="catalog.html" class="footer-link">CATALOG</a>
+                    <a href="utilities.html" class="footer-link">UTILITIES</a>
+                    <a href="specs.html" class="footer-link">SPECS</a>
+                    <a href="lab.html" class="footer-link">LAB</a>
+                    <a href="#" class="footer-link">RSS</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        /* ================================================================
+           CURRENCY TOGGLE
+           ================================================================ */
+        const EXCHANGE_RATE = 84.5;
+        let currentCurrency = localStorage.getItem('bpi-currency') || 'INR';
+
+        function initCurrency() {
+            document.querySelectorAll('.currency-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.currency === currentCurrency);
+                btn.addEventListener('click', () => {
+                    currentCurrency = btn.dataset.currency;
+                    localStorage.setItem('bpi-currency', currentCurrency);
+                    updateCurrencyUI();
+                });
+            });
+            updateCurrencyUI();
+        }
+
+        function updateCurrencyUI() {
+            document.querySelectorAll('.currency-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.currency === currentCurrency);
+            });
+
+            document.querySelectorAll('.price-currency-symbol').forEach(el => {
+                el.textContent = currentCurrency === 'INR' ? '\u20B9' : '$';
+            });
+
+            document.querySelectorAll('.price-value').forEach(el => {
+                const val = currentCurrency === 'INR' ? el.dataset.inr : el.dataset.usd;
+                if (val) el.textContent = val;
+            });
+        }
+
+        /* ================================================================
+           BAG COUNTER
+           ================================================================ */
+        
+        /* BAG LOGIC */
+        let cart = [];
+        try { cart = JSON.parse(localStorage.getItem('bpi-cart')) || []; } catch(e) { cart = []; }
+
+        function getCartCount() { return cart.reduce((sum, item) => sum + item.qty, 0); }
+
+        function updateBagUI() {
+            const count = getCartCount();
+            const el = document.getElementById('bag-count');
+            if (el) el.textContent = count;
+            const mobileEl = document.getElementById('bag-count-mobile') || document.querySelector('.mobile-bag-count');
+            if (mobileEl) mobileEl.textContent = count;
+            const link = document.getElementById('bag-link');
+            if (link) link.classList.toggle('has-items', count > 0);
+            const itemCount = document.getElementById('bag-item-count');
+            if (itemCount) itemCount.textContent = count;
+            if (typeof renderCartItems === 'function') renderCartItems();
+        }
+
+        function saveCart() {
+            localStorage.setItem('bpi-cart', JSON.stringify(cart));
+            localStorage.setItem('bpi-bag', getCartCount());
+            updateBagUI();
+            updateCurrencyUI();
+        }
+
+        window.addToBagDetailed = function(product) {
+            const existing = cart.find(item => item.id === product.id);
+            if (existing) { existing.qty += 1; } else { cart.push({...product, qty: 1}); }
+            saveCart();
+            const link = document.getElementById('bag-link');
+            if (link) {
+                link.style.background = 'var(--accent)';
+                link.style.color = 'var(--canvas)';
+                setTimeout(() => { link.style.background = ''; link.style.color = ''; }, 300);
+            }
+        };
+
+        document.querySelectorAll('.add-to-bag-btn, .btn-primary').forEach(btn => {
+            if (btn.textContent.trim() === 'ADD TO BAG' || btn.classList.contains('add-to-bag-btn')) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const card = btn.closest('.strip-card') || btn.closest('.featured-info') || btn.closest('.product-card') || btn.closest('.lab-card') || btn.closest('.detail-hero-content');
+                    let product = { id: 'BPI-UNKNOWN', name: 'Hardware Product', price_inr: 0, price_usd: 0 };
+                    
+                    if (card) {
+                        const skuEl = card.querySelector('.strip-card-sku') || card.querySelector('.product-sku') || card.querySelector('.hero-tag');
+                        if (skuEl) product.id = skuEl.textContent.trim();
+                        if (!skuEl && btn.closest('.featured-info')) product.id = 'BPI-PL01';
+                        
+                        const nameEl = card.querySelector('.strip-card-name') || card.querySelector('.featured-product-name') || card.querySelector('.product-title') || card.querySelector('.hero-headline');
+                        if (nameEl) product.name = nameEl.textContent.trim().replace(' Wireless Headphones', '');
+                        
+                        const priceVal = card.querySelector('.price-value');
+                        if (priceVal) {
+                            product.price_inr = parseInt(priceVal.dataset.inr.replace(/,/g, ''), 10);
+                            product.price_usd = parseInt(priceVal.dataset.usd, 10);
+                        }
+                    }
+                    
+                    addToBagDetailed(product);
+                    const originalText = btn.textContent;
+                    btn.textContent = 'ADDED';
+                    setTimeout(() => { btn.textContent = originalText; }, 1200);
+                });
+            }
+        });
+
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+
+        if (mobileToggle && mobileNav) {
+            mobileToggle.addEventListener('click', () => {
+                mobileToggle.classList.toggle('open');
+                mobileNav.classList.toggle('open');
+                document.body.style.overflow = mobileNav.classList.contains('open') ? 'hidden' : '';
+            });
+        }
+
+        /* ================================================================
+           SCROLL REVEAL
+           ================================================================ */
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        /* ================================================================
+           NEWSLETTER
+           ================================================================ */
+        document.getElementById('newsletter-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('.newsletter-submit');
+            btn.textContent = 'SUBSCRIBED';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                btn.textContent = 'SUBSCRIBE';
+                btn.style.background = '';
+            }, 2000);
+        });
+
+        /* ================================================================
+           SPEC SHEET ACCORDION
+           ================================================================ */
+        document.querySelectorAll('.spec-sheet-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                const wasActive = item.classList.contains('active');
+                
+                // Close all
+                document.querySelectorAll('.spec-sheet-item').forEach(el => el.classList.remove('active'));
+                
+                // Toggle clicked
+                if (!wasActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        /* ================================================================
+           INIT
+           ================================================================ */
+        initCurrency();
+        updateBagUI();
+        
+        // Open first spec sheet by default
+        document.querySelector('.spec-sheet-item')?.classList.add('active');
+    </script>
+</body>
+</html>
